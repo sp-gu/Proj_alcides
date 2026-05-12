@@ -66,6 +66,24 @@ public class AppNetFlix {
         }
     }
 
+    private static boolean validarCampos(String[] campos) {
+    // Se a linha for vazia ou tiver menos colunas que o mínimo necessário (ID e Título), descarta.
+    if (campos == null || campos.length < 2) {
+        return false; 
+    }
+
+    // apenas ID (0) e Título (1) como obrigatórios
+    int[] indicesObrigatorios = {0, 1}; 
+
+    for (int i : indicesObrigatorios) {
+        // Verifica se o índice existe no array e se não está vazio
+        if (i >= campos.length || campos[i] == null || campos[i].trim().isEmpty()) {
+            return false;
+        }
+        }
+        return true; // Se tem ID e Título, o resto nós tratamos como opcional
+    }
+
     private static void carregarArquivo() {
         String nomeArquivo = "C:\\Users\\spgu\\OneDrive - amazon.com\\Apagar\\codes_mack\\EstrDados\\PrjN2\\titles.csv";
 
@@ -75,20 +93,23 @@ public class AppNetFlix {
             int inseridos = 0, descartados = 0;
 
             while ((linha = br.readLine()) != null) {
-                // Regex para dividir CSV considerando aspas
+                if (linha.trim().isEmpty()) continue; // Pula linhas totalmente vazias
+
                 String[] campos = linha.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
-                if (validarCampos(campos)) { //se validarCampos retornar true, os dados são inseridos
+                if (validarCampos(campos)) {
+                    // usa função auxiliar getSafe para evitar o erro de Index Out of Bounds
+                    // caso a linha termine antes da coluna 14
                     ProgramaNetFlix p = new ProgramaNetFlix(
-                        campos[0], campos[1], campos[2], campos[3],
-                        Integer.parseInt(campos[4]), campos[5], 
-                        Integer.parseInt(campos[6]), campos[7],
-                        campos[8], parseDoubleSafe(campos[9]),
-                        campos[10], parseDoubleSafe(campos[11]),
-                        parseDoubleSafe(campos[12]), parseDoubleSafe(campos[13]),
-                        parseDoubleSafe(campos[14])
+                        getSafe(campos, 0), getSafe(campos, 1), getSafe(campos, 2), getSafe(campos, 3),
+                        parseIntegerSafe(getSafe(campos, 4)), getSafe(campos, 5), 
+                        parseIntegerSafe(getSafe(campos, 6)), getSafe(campos, 7),
+                        getSafe(campos, 8), parseDoubleSafe(getSafe(campos, 9)),
+                        getSafe(campos, 10), parseDoubleSafe(getSafe(campos, 11)),
+                        parseDoubleSafe(getSafe(campos, 12)), parseDoubleSafe(getSafe(campos, 13)),
+                        parseDoubleSafe(getSafe(campos, 14))
                     );
-                    arvore.inserir(p); // Chave de inserção é o ID
+                    arvore.inserir(p);
                     inseridos++;
                 } else {
                     descartados++;
@@ -100,18 +121,26 @@ public class AppNetFlix {
         }
     }
 
-    // método de validação da inserção
-    private static boolean validarCampos(String[] campos) {
-        if (campos.length < 15) return false;
-        for (String campo : campos) {
-            if (campo == null || campo.trim().isEmpty()) return false;
-        }
-        return true;
+    // 3. Função Auxiliar para ler colunas com segurança
+    private static String getSafe(String[] campos, int indice) {
+        if (indice >= campos.length) return ""; // Retorna vazio se a coluna não existir na linha
+        return campos[indice];
     }
 
+    //Converte para Double com segurança. Se o campo estiver vazio ou for texto inválido, retorna 0.0.
     private static double parseDoubleSafe(String s) {
         try { return s.isEmpty() ? 0.0 : Double.parseDouble(s); }
         catch (Exception e) { return 0.0; }
+    }
+
+    private static int parseIntegerSafe(String s) {
+        try {
+            if (s == null || s.trim().isEmpty()) return 0;
+            // Usamos Double.parseDouble antes do cast para int caso o CSV venha como "2020.0"
+            return (int) Double.parseDouble(s.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
      //op 4: busca por ID, contabilizando tempo e comparações
