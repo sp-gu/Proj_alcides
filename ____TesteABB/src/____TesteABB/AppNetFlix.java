@@ -56,7 +56,7 @@ public class AppNetFlix {
                 System.out.println("Altura da arvore: " + calcularAltura(arvore.getRaiz()));
                 break;
             case 7:
-                System.out.println("Funcionalidade em desenvolvimento (Salvar).");
+                salvarArquivo();
                 break;
             case 8:
                 System.out.println("Encerrando...");
@@ -121,13 +121,13 @@ public class AppNetFlix {
         }
     }
 
-    // 3. Função Auxiliar para ler colunas com segurança
+    // função Auxiliar para ler colunas com segurança
     private static String getSafe(String[] campos, int indice) {
         if (indice >= campos.length) return ""; // Retorna vazio se a coluna não existir na linha
         return campos[indice];
     }
 
-    //Converte para Double com segurança. Se o campo estiver vazio ou for texto inválido, retorna 0.0.
+    // converte para Double com segurança. Se o campo estiver vazio ou for texto inválido, retorna 0.0.
     private static double parseDoubleSafe(String s) {
         try { return s.isEmpty() ? 0.0 : Double.parseDouble(s); }
         catch (Exception e) { return 0.0; }
@@ -176,8 +176,115 @@ public class AppNetFlix {
     }
 
     // PENDENTE: métodos para Inserção manual e Remoção c/  lógica similar chamando arvore.inserir e arvore.eliminar
-    private static void inserirNovoPrograma() { /* implementar conforme op 3 do PDF */ }
-    private static void removerPrograma() { /*implementar conforme op 5 do PDF */ }
+    private static void inserirNovoPrograma() { 
+        System.out.println("\n--- INSERIR NOVO PROGRAMA ---");
+        
+        System.out.print("Tipo (Digite 'ts' para SHOW ou 'tm' para MOVIE): ");
+        String prefixo = scanner.nextLine().toLowerCase();
+        if (!prefixo.equals("ts") && !prefixo.equals("tm")) {
+            System.out.println("Erro: Categoria inválida.");
+            return;
+        }
+
+        System.out.print("Digite o número único para o ID: ");
+        String numeroUnico = scanner.nextLine();
+        String id = prefixo + numeroUnico; // Conforme regra do ID 
+
+        // Coleta de dados básicos para exemplificar os 15 atributos [cite: 65]
+        System.out.print("Título: ");
+        String titulo = scanner.nextLine();
+        System.out.print("Tipo (SHOW/MOVIE): ");
+        String tipo = scanner.nextLine();
+        System.out.print("Descrição: ");
+        String desc = scanner.nextLine();
+        System.out.print("Ano de Lançamento: ");
+        int ano = parseIntegerSafe(scanner.nextLine());
+        System.out.print("Certificação de Idade: ");
+        String age = scanner.nextLine();
+        System.out.print("Duração (runtime): ");
+        int runtime = parseIntegerSafe(scanner.nextLine());
+        System.out.print("Gêneros: ");
+        String generos = scanner.nextLine();
+        System.out.print("Países de Produção: ");
+        String paises = scanner.nextLine();
+        System.out.print("Temporadas (se SHOW): ");
+        double seasons = parseDoubleSafe(scanner.nextLine());
+        System.out.print("IMDB ID: ");
+        String imdbId = scanner.nextLine();
+        System.out.print("IMDB Score: ");
+        double imdbScore = parseDoubleSafe(scanner.nextLine());
+        System.out.print("IMDB Votes: ");
+        double imdbVotes = parseDoubleSafe(scanner.nextLine());
+        System.out.print("TMDB Popularity: ");
+        double tmdbPop = parseDoubleSafe(scanner.nextLine());
+        System.out.print("TMDB Score: ");
+        double tmdbScore = parseDoubleSafe(scanner.nextLine());
+
+        // Criando o array para validação de preenchimento 
+        String[] campos = {id, titulo, tipo, desc, String.valueOf(ano), age, String.valueOf(runtime), 
+                           generos, paises, String.valueOf(seasons), imdbId, String.valueOf(imdbScore), 
+                           String.valueOf(imdbVotes), String.valueOf(tmdbPop), String.valueOf(tmdbScore)};
+
+        if (validarCampos(campos)) {
+            ProgramaNetFlix novo = new ProgramaNetFlix(id, titulo, tipo, desc, ano, age, runtime, 
+                                     generos, paises, seasons, imdbId, imdbScore, imdbVotes, tmdbPop, tmdbScore);
+            arvore.inserir(novo);
+            System.out.println("Programa inserido com sucesso!");
+        } else {
+            System.out.println("Erro: Todos os 15 atributos devem estar preenchidos.");
+        }
+     }
+
+    private static void removerPrograma() { 
+        System.out.print("Digite o ID do programa a ser removido: ");
+        String idRemover = scanner.nextLine();
+
+        // Template para busca e remoção via Comparable (ID)
+        ProgramaNetFlix template = new ProgramaNetFlix();
+        template.setId(idRemover);
+
+        if (arvore.eliminar(template)) {
+            System.out.println("Programa com ID " + idRemover + " removido com sucesso.");
+        } else {
+            System.out.println("Erro: Programa não encontrado.");
+        }
+     }
+
+     private static void salvarArquivo() {
+        System.out.print("Digite o nome do arquivo para salvar (ex: dataset_atualizado.csv): ");
+        String nomeArquivo = scanner.nextLine();
+
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(nomeArquivo))) {
+            // Cabeçalho do CSV [cite: 49]
+            pw.println("id,title,type,description,release_year,age_certification,runtime,genres,production_countries,seasons,imdb_id,imdb_score,imdb_votes,tmdb_popularity,tmdb_score");
+            
+            // Percurso em ordem para salvar os dados de forma organizada 
+            escreverNoArquivo(arvore.getRaiz(), pw);
+            
+            System.out.println("Dados salvos com sucesso no arquivo: " + nomeArquivo);
+        } catch (IOException e) {
+            System.out.println("Erro ao salvar o arquivo: " + e.getMessage());
+        }
+     }
+
+     // método auxiliar recursivo do "salvarArquivo", para percorrer a árvore e escrever no PrintWriter
+    private static void escreverNoArquivo(Node<ProgramaNetFlix> no, java.io.PrintWriter pw) {
+        if (no != null) {
+            escreverNoArquivo(no.getFilhoEsquerdo(), pw);
+            
+            ProgramaNetFlix p = no.getValue();
+            // Formatação CSV simples (considerando que dados com vírgula devem estar entre aspas)
+            String linha = String.format("%s,\"%s\",%s,\"%s\",%d,%s,%d,\"%s\",\"%s\",%.1f,%s,%.1f,%.1f,%.1f,%.1f",
+                p.getId(), p.getTitle(), p.getType(), p.getDescription(), p.getRelease_year(),
+                p.getAge_certification(), p.getRuntime(), p.getGenres(), p.getProduction_countries(),
+                p.getSeasons(), p.getImdb_id(), p.getImdb_score(), p.getImdb_votes(),
+                p.getTmdb_popularity(), p.getTmdb_score());
+            
+            pw.println(linha);
+            
+            escreverNoArquivo(no.getFilhoDireito(), pw);
+        }
+    }
 
     // PENDENTE: métodos de analise de dados da op 2 do PDF
     // criar outro while dentro do existente com as 5 opções de método de análise  
