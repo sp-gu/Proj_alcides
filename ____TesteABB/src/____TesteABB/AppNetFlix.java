@@ -163,9 +163,9 @@ public class AppNetFlix {
             System.out.println("Encontrado: " + resultado.getValue());
             System.out.println("---");
             System.out.println("Comparações realizadas: " + arvore.getContadorComparacoes());
-            System.out.println("Tempo de execução: " + (tempoFinal - tempoInicial) + " nanosegundos");
+            System.out.println("Tempo de execucao: " + (tempoFinal - tempoInicial) + " nanosegundos");
         } else {
-            System.out.println("Título não encontrado.");
+            System.out.println("Titulo nao encontrado.");
         }
     }
 
@@ -182,7 +182,7 @@ public class AppNetFlix {
         System.out.print("Tipo (Digite 'ts' para SHOW ou 'tm' para MOVIE): ");
         String prefixo = scanner.nextLine().toLowerCase();
         if (!prefixo.equals("ts") && !prefixo.equals("tm")) {
-            System.out.println("Erro: Categoria inválida.");
+            System.out.println("Erro: Categoria invalida.");
             return;
         }
 
@@ -195,11 +195,11 @@ public class AppNetFlix {
         String titulo = scanner.nextLine();
         System.out.print("Tipo (SHOW/MOVIE): ");
         String tipo = scanner.nextLine();
-        System.out.print("Descrição: ");
+        System.out.print("Descricao: ");
         String desc = scanner.nextLine();
         System.out.print("Ano de Lançamento: ");
         int ano = parseIntegerSafe(scanner.nextLine());
-        System.out.print("Certificação de Idade: ");
+        System.out.print("Certificacao de Idade: ");
         String age = scanner.nextLine();
         System.out.print("Duração (runtime): ");
         int runtime = parseIntegerSafe(scanner.nextLine());
