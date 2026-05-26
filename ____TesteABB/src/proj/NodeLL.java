@@ -1,4 +1,4 @@
-package ____TesteABB;
+package proj;
 
 //Classe NodeLL: relativa a um nó (NodeLL) da estrutura de dados  
 //Lista Ligada capaz de armazenar dados genéricos

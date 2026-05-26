@@ -1,4 +1,4 @@
-package ____TesteABB;
+package proj;
 
 //Classe ABB<T>: encarregada de manipular a estrutura de dados
 //árvore de busca binária (ABB) genérica.

@@ -1,4 +1,4 @@
-package ____TesteABB;
+package proj;
 
 /* implementa Comparable para permitir a inserção na árvore BST usando o 'id' como chave. */
 public class ProgramaNetFlix implements Comparable<ProgramaNetFlix> {

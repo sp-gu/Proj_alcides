@@ -1,4 +1,4 @@
-package ____TesteABB;
+package proj;
 
 //Classe LinkedList<T>: encarregada de manipular a estrutura de dados
 //lista ligada genérica.

@@ -1,4 +1,4 @@
-package ____TesteABB;
+package proj;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -41,7 +41,46 @@ public class AppNetFlix {
                 carregarArquivo();
                 break;
             case 2:
-                System.out.println("Funcionalidade em desenvolvimento (Analises).");
+                if (arvore.isEmpty()) {
+                    System.out.println("A arvore esta vazia. Carregue os dados primeiro (Opcao 1).");
+                    break;
+                }
+                System.out.println("\n--- ANALISES DE DADOS ---");
+                System.out.println("1. Ranking de Qualidade por Genero");
+                System.out.println("2. Analise de Maturidade e Duracao");
+                System.out.println("3. Tendencias de Producao por Decada");
+                System.out.println("4. Eficiencia de Producao Internacional");
+                System.out.println("5. Divergencia Critica (IMDB vs TMDB)");
+                System.out.print("Escolha a analise: ");
+                try {
+                    int opAnalise = Integer.parseInt(scanner.nextLine());
+                    switch (opAnalise) {
+                        case 1:
+                            // rankingPorGenero(); 
+                            System.out.println("Funcionalidade em desenvolvimento.");
+                            break;
+                        case 2:
+                            // maturidadeDuracao(); 
+                            System.out.println("Funcionalidade em desenvolvimento.");
+                            break;
+                        case 3:
+                            tendenciasPorDecada();
+                            break;
+                        case 4:
+                            // eficienciaInternacional();
+                            System.out.println("Funcionalidade em desenvolvimento.");
+                            break;
+                        case 5:
+                            // divergenciaCritica();
+                            System.out.println("Funcionalidade em desenvolvimento.");
+                            break;
+                        default:
+                            System.out.println("Opcao invalida.");
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Opcao invalida.");
+                }
                 break;
             case 3:
                 inserirNovoPrograma();
@@ -150,6 +189,60 @@ public class AppNetFlix {
     private static void inserirNovoPrograma() { /* implementar conforme op 3 do PDF */ }
     private static void removerPrograma() { /*implementar conforme op 5 do PDF */ }
 
-    // PENDENTE: métodos de analise de dados da op 2 do PDF
-    // criar outro while dentro do existente com as 5 opções de método de análise  
+
+    private static void tendenciasPorDecada() {
+
+        System.out.println("\n--- Tendencias de Producao por Decada ---");
+
+        // Faixa fechada: 1940-2030 (10 décadas).
+        final int ANO_BASE = 1940;
+        final int NUM_DECADAS = 10;
+        double[] somaPop = new double[NUM_DECADAS];
+        int[] contagem = new int[NUM_DECADAS];
+
+        // percurso em pós-ordem
+        posOrdemDecadas(arvore.getRaiz(), somaPop, contagem, ANO_BASE);
+
+        // Imprime resultado
+        boolean encontrou = false;
+        System.out.printf("%-10s | %-22s | %s\n", "Decada", "Popularidade Media", "Qtd Titulos");
+        System.out.println("-------------------------------------------------------");
+        for (int i = 0; i < NUM_DECADAS; i++) {
+            if (contagem[i] > 0) {
+                int anoInicio = ANO_BASE + i * 10;
+                double media = somaPop[i] / contagem[i];
+                System.out.printf("%d-%d | %-22.2f | %d\n",
+                        anoInicio, anoInicio + 9, media, contagem[i]);
+                encontrou = true;
+            }
+        }
+
+        if (!encontrou) {
+            System.out.println("Nenhuma decada com dados validos foi encontrada.");
+        }
+        System.out.println("-------------------------------------------------------");
+    }
+
+    // Percurso em pós-ordem
+    private static void posOrdemDecadas(Node<ProgramaNetFlix> no, double[] somaPop,
+                                        int[] contagem, int anoBase) {
+        if (no == null) return;
+
+        posOrdemDecadas(no.getFilhoEsquerdo(), somaPop, contagem, anoBase);
+        posOrdemDecadas(no.getFilhoDireito(), somaPop, contagem, anoBase);
+
+        // Processamento do nó
+        ProgramaNetFlix p = no.getValue();
+        int ano = p.getRelease_year();
+        double pop = p.getTmdb_popularity();
+
+        // Descarta entradas com ano ou popularidade inválidos
+        if (ano <= 0 || pop <= 0) return;
+
+        int indice = (ano - anoBase) / 10;
+        if (indice < 0 || indice >= somaPop.length) return;
+
+        somaPop[indice] += pop;
+        contagem[indice]++;
+    }
 }

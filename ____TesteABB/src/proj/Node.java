@@ -1,4 +1,4 @@
-package ____TesteABB;
+package proj;
 
 //Classe Node: relativa a um nó (Node) da estrutura de dados  
 //Árvore de Busca Binária (ABB) capaz de armazenar dados genéricos
