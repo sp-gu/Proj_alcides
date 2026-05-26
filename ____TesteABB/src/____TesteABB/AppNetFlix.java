@@ -60,15 +60,15 @@ public class AppNetFlix {
                             System.out.println("Funcionalidade em desenvolvimento.");
                             break;
                         case 3:
-                            // tendenciasPorDecada();
+                            tendenciasPorDecada();
                             break;
                         case 4:
-                            // eficienciaInternacional();
+                            eficienciaInternacional();
                             break;
                         case 5:
                             divergenciaCritica();
                             break;
-                            default:
+                        default:
                             System.out.println("Opcao invalida!.");
                             break;
                     }
@@ -118,8 +118,10 @@ public class AppNetFlix {
         return true; // Se tem ID e Título, o resto nós tratamos como opcional
     }
 
+    //"C:\\Users\\spgu\\OneDrive - amazon.com\\Apagar\\codes_mack\\EstrDados\\PrjN2\\titles.csv"
+    // caminho do arquivo salvo
     private static void carregarArquivo() {
-        String nomeArquivo = "C:\\Users\\spgu\\OneDrive - amazon.com\\Apagar\\codes_mack\\EstrDados\\PrjN2\\titles.csv";
+        String nomeArquivo = "titles.csv";
 
         try (BufferedReader br = new BufferedReader(new FileReader(nomeArquivo))) {
             String linha;
@@ -184,64 +186,7 @@ public class AppNetFlix {
         }
     }
 
-    // op 2.5
-    private static void divergenciaCritica() {
-        if (arvore.isEmpty()) {
-            System.out.println("A arvore está vazia. Carregue os dados primeiro (Opcao 1).");
-            return;
-        }
-
-        System.out.print("Digite o valor de corte para a diferença de notas (ex: 2.0): ");
-        double corte;
-        try {
-            corte = Double.parseDouble(scanner.nextLine());
-        } catch (NumberFormatException e) {
-            System.out.println("Erro: Por favor, digite um número decimal válido.");
-            return;
-        }
-
-        System.out.println("\n--- Títulos com Divergência Crítica (> " + corte + ") ---");
-
-        // Utilizando a LinkedList customizada do projeto como Fila (Queue)
-        LinkedList<Node<ProgramaNetFlix>> fila = new LinkedList<>();
-        fila.addLast(arvore.getRaiz());
-
-        boolean encontrou = false;
-
-        // Loop do percurso em Nível (Breadth-First Search)
-        while (!fila.isEmpty()) {
-            Node<ProgramaNetFlix> atual = fila.pollFirst(); // Desenfileira
-            ProgramaNetFlix programa = atual.getValue();
-
-            double imdb = programa.getImdb_score();
-            double tmdb = programa.getTmdb_score();
-
-            // Filtramos notas 0.0 para evitar falsas divergências devido a dados faltantes
-            // no CSV
-            if (imdb > 0 && tmdb > 0) {
-                double diff = Math.abs(imdb - tmdb);
-
-                if (diff > corte) {
-                    System.out.printf("Título: %-40s | IMDB: %.1f | TMDB: %.1f | Diferença: %.1f\n",
-                            programa.getTitle(), imdb, tmdb, diff);
-                    encontrou = true;
-                }
-            }
-
-            // Enfileira os filhos para continuar o percurso em nível
-            if (atual.getFilhoEsquerdo() != null) {
-                fila.addLast(atual.getFilhoEsquerdo());
-            }
-            if (atual.getFilhoDireito() != null) {
-                fila.addLast(atual.getFilhoDireito());
-            }
-        }
-
-        if (!encontrou) {
-            System.out.println("Nenhum título encontrado com uma divergência superior a " + corte + ".");
-        }
-        System.out.println("---------------------------------------------------------");
-    }
+    
 
     // op 4: busca por ID, contabilizando tempo e comparações
     private static void buscarPrograma() {
@@ -279,7 +224,6 @@ public class AppNetFlix {
         return 1 + Math.max(calcularAltura(atual.getFilhoEsquerdo()), calcularAltura(atual.getFilhoDireito()));
     }
 
-    // PENDENTE: métodos para Inserção manual e Remoção c/ lógica similar chamando
     // arvore.inserir e arvore.eliminar
     private static void inserirNovoPrograma() {
         System.out.println("\n--- INSERIR NOVO PROGRAMA ---");
@@ -394,6 +338,7 @@ public class AppNetFlix {
         }
     }
 
+    //op 2.1: Ranking de Qualidade por Gênero (Percurso: Em-ordem )
     private static void rankQualiTipo(){
         ArrayList<ProgramaNetFlix> topProgramas = new ArrayList<>();
         System.out.print("Digite o tipo de programa: ");
@@ -415,20 +360,224 @@ public class AppNetFlix {
     }
 
     private static void filtrarTop(
-        Node<ProgramaNetFlix> no,
-        ArrayList<ProgramaNetFlix> ar,
-        String tipo
-    ){
-        if(no != null){
-            filtrarTop(no.getFilhoEsquerdo(), ar, tipo);
+            Node<ProgramaNetFlix> no,
+            ArrayList<ProgramaNetFlix> ar,
+            String tipo
+        ){
+            if(no != null){
+                filtrarTop(no.getFilhoEsquerdo(), ar, tipo);
 
-            ProgramaNetFlix programa = no.getValue();
+                ProgramaNetFlix programa = no.getValue();
 
-            if (programa.getImdb_score() > 8.0 && no.getValue().getType().equals(tipo)) {
-                ar.add(programa);
+                if (programa.getImdb_score() > 8.0 && no.getValue().getType().equals(tipo)) {
+                    ar.add(programa);
+                }
+
+                filtrarTop(no.getFilhoDireito(), ar, tipo);
+            }
+    }
+
+    //op 2.2: Análise de Maturidade e Duração (Percurso: Pré-ordem)
+
+    //metodo 2
+
+    // op 2.3: Tendências de Produção por Década (Percurso: Pós-ordem)
+    private static void tendenciasPorDecada() {
+        if (arvore.isEmpty()) {
+            System.out.println("A arvore esta vazia. Carregue os dados primeiro (Opcao 1).");
+            return;
+        }
+
+        System.out.println("\n--- Tendencias de Producao por Decada ---");
+
+        // Faixa fechada: 1940-2030 (10 décadas)
+        final int ANO_BASE = 1940;
+        final int NUM_DECADAS = 10;
+        double[] somaPop = new double[NUM_DECADAS];
+        int[] contagem = new int[NUM_DECADAS];
+
+        // Dispara o percurso em pós-ordem a partir da raiz
+        posOrdemDecadas(arvore.getRaiz(), somaPop, contagem, ANO_BASE);
+
+        // Imprime resultados
+        boolean encontrou = false;
+        System.out.printf("%-10s | %-22s | %s\n", "Decada", "Popularidade Media", "Qtd Titulos");
+        System.out.println("-------------------------------------------------------");
+        for (int i = 0; i < NUM_DECADAS; i++) {
+            if (contagem[i] > 0) {
+                int anoInicio = ANO_BASE + i * 10;
+                double media = somaPop[i] / contagem[i];
+                System.out.printf("%d-%d | %-22.2f | %d\n",
+                        anoInicio, anoInicio + 9, media, contagem[i]);
+                encontrou = true;
+            }
+        }
+
+        if (!encontrou) {
+            System.out.println("Nenhuma decada com dados validos foi encontrada.");
+        }
+        System.out.println("-------------------------------------------------------");
+    }
+
+    // Percurso em pós-ordem (recursivo)
+    private static void posOrdemDecadas(Node<ProgramaNetFlix> no, double[] somaPop,
+                                        int[] contagem, int anoBase) {
+        if (no == null) return;
+
+        posOrdemDecadas(no.getFilhoEsquerdo(), somaPop, contagem, anoBase);
+        posOrdemDecadas(no.getFilhoDireito(), somaPop, contagem, anoBase);
+
+        // Processamento do nó 
+        ProgramaNetFlix p = no.getValue();
+        int ano = p.getRelease_year();
+        double pop = p.getTmdb_popularity();
+
+        // Descarta entradas com ano ou popularidade inválidos
+        if (ano <= 0 || pop <= 0) return;
+
+        int indice = (ano - anoBase) / 10;
+        if (indice < 0 || indice >= somaPop.length) return; 
+
+        somaPop[indice] += pop;
+        contagem[indice]++;
+    }
+
+    // op 2.4: Eficiência de Produção Internacional (Percurso: Nível)
+    private static void eficienciaInternacional() {
+        if (arvore.isEmpty()) {
+            System.out.println("A arvore esta vazia. Carregue os dados primeiro (Opcao 1).");
+            return;
+        }
+
+        // Duas ArrayLists paralelas: codigos[i] corresponde a contagens[i] e somasVotos[i]
+        ArrayList<String> codigos = new ArrayList<>();
+        ArrayList<Integer> contagens = new ArrayList<>();
+        ArrayList<Double> somasVotos = new ArrayList<>();
+
+        // Percurso em nivel
+        LinkedList<Node<ProgramaNetFlix>> fila = new LinkedList<>();
+        fila.addLast(arvore.getRaiz());
+
+        while (!fila.isEmpty()) {
+            Node<ProgramaNetFlix> atual = fila.pollFirst();
+            ProgramaNetFlix prog = atual.getValue();
+            double votos = prog.getImdb_votes();
+
+            if (votos > 0) {
+                String[] paises = parsearPaises(prog.getProduction_countries());
+                for (String pais : paises) {
+                    int idx = codigos.indexOf(pais);
+                    if (idx == -1) {
+                        codigos.add(pais);
+                        contagens.add(1);
+                        somasVotos.add(votos);
+                    } else {
+                        contagens.set(idx, contagens.get(idx) + 1);
+                        somasVotos.set(idx, somasVotos.get(idx) + votos);
+                    }
+                }
             }
 
-            filtrarTop(no.getFilhoDireito(), ar, tipo);
+            if (atual.getFilhoEsquerdo() != null) fila.addLast(atual.getFilhoEsquerdo());
+            if (atual.getFilhoDireito() != null)  fila.addLast(atual.getFilhoDireito());
         }
+
+        // Exibe paises com pelo menos 5 titulos, ordenados por media de votos
+        System.out.println("\n--- Eficiencia de Producao Internacional ---");
+        System.out.printf("%-8s | %-10s | %s\n", "Pais", "Titulos", "Media de Votos");
+        System.out.println("---------------------------------------------");
+
+        // Ordenacao simples: a cada passada, acha o de maior media e imprime
+        boolean[] jaImpresso = new boolean[codigos.size()];
+        for (int passada = 0; passada < codigos.size(); passada++) {
+            int melhor = -1;
+            double melhorMedia = -1;
+            for (int i = 0; i < codigos.size(); i++) {
+                if (!jaImpresso[i] && contagens.get(i) >= 5) {
+                    double media = somasVotos.get(i) / contagens.get(i);
+                    if (media > melhorMedia) {
+                        melhorMedia = media;
+                        melhor = i;
+                    }
+                }
+            }
+            if (melhor == -1) break;
+            System.out.printf("%-8s | %-10d | %.0f\n",
+                    codigos.get(melhor), contagens.get(melhor), melhorMedia);
+            jaImpresso[melhor] = true;
+        }
+        System.out.println("---------------------------------------------");
     }
+
+    // Auxiliar: converte "['US', 'CA']" em array de codigos
+    private static String[] parsearPaises(String raw) {
+        if (raw == null) return new String[0];
+        String limpo = raw.replaceAll("[\\[\\]'\"]", "").trim();
+        if (limpo.isEmpty()) return new String[0];
+        String[] partes = limpo.split(",");
+        for (int i = 0; i < partes.length; i++) {
+            partes[i] = partes[i].trim();
+        }
+        return partes;
+    }
+    
+    // op 2.5: Divergência Crítica (Percurso: Nível)
+    private static void divergenciaCritica() {
+        if (arvore.isEmpty()) {
+            System.out.println("A arvore está vazia. Carregue os dados primeiro (Opcao 1).");
+            return;
+        }
+
+        System.out.print("Digite o valor de corte para a diferença de notas (ex: 2.0): ");
+        double corte;
+        try {
+            corte = Double.parseDouble(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Erro: Por favor, digite um número decimal válido.");
+            return;
+        }
+
+        System.out.println("\n--- Títulos com Divergência Crítica (> " + corte + ") ---");
+
+        // Utilizando a LinkedList customizada do projeto como Fila (Queue)
+        LinkedList<Node<ProgramaNetFlix>> fila = new LinkedList<>();
+        fila.addLast(arvore.getRaiz());
+
+        boolean encontrou = false;
+
+        // Loop do percurso em Nível (Breadth-First Search)
+        while (!fila.isEmpty()) {
+            Node<ProgramaNetFlix> atual = fila.pollFirst(); // Desenfileira
+            ProgramaNetFlix programa = atual.getValue();
+
+            double imdb = programa.getImdb_score();
+            double tmdb = programa.getTmdb_score();
+
+            // Filtramos notas 0.0 para evitar falsas divergências devido a dados faltantes
+            // no CSV
+            if (imdb > 0 && tmdb > 0) {
+                double diff = Math.abs(imdb - tmdb);
+
+                if (diff > corte) {
+                    System.out.printf("Título: %-40s | IMDB: %.1f | TMDB: %.1f | Diferença: %.1f\n",
+                            programa.getTitle(), imdb, tmdb, diff);
+                    encontrou = true;
+                }
+            }
+
+            // Enfileira os filhos para continuar o percurso em nível
+            if (atual.getFilhoEsquerdo() != null) {
+                fila.addLast(atual.getFilhoEsquerdo());
+            }
+            if (atual.getFilhoDireito() != null) {
+                fila.addLast(atual.getFilhoDireito());
+            }
+        }
+
+        if (!encontrou) {
+            System.out.println("Nenhum título encontrado com uma divergência superior a " + corte + ".");
+        }
+        System.out.println("---------------------------------------------------------");
+    }
+
 }
