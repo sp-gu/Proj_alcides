@@ -41,7 +41,34 @@ public class AppNetFlix {
                 carregarArquivo();
                 break;
             case 2:
-                System.out.println("Funcionalidade em desenvolvimento (Analises).");
+                System.out.println("\n--- ANALISES DE DADOS ---");
+                System.out.println("1. Qualidade por Genero");
+                System.out.println("2. Analise de maturidade e Duracao");
+                System.out.println("3. Tendencias de Producao por Decada");
+                System.out.println("4. Eficiencia de Producao Internacional");
+                System.out.println("5. Divergencia Critica (IMDB vs TMDB)");
+                System.out.print("Escolha a analise: ");
+                try {
+                    int opAnalise = Integer.parseInt(scanner.nextLine());
+                    switch (opAnalise) {
+                        case 5:
+                            divergenciaCritica();
+                            break;
+                        case 4:
+                            break;
+                        case 3:
+                            break;
+                        case 2:
+                            break;
+                        case 1:
+                            break;
+                        default:
+                    System.out.println("Opcao invalida!.");
+                    break;
+            }
+                } catch (NumberFormatException e) {
+                    System.out.println("Opção inválida.");
+                }
                 break;
             case 3:
                 inserirNovoPrograma();
@@ -141,6 +168,64 @@ public class AppNetFlix {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    // op 2.5
+    private static void divergenciaCritica() {
+        if (arvore.isEmpty()) {
+            System.out.println("A arvore está vazia. Carregue os dados primeiro (Opcao 1).");
+            return;
+        }
+
+        System.out.print("Digite o valor de corte para a diferença de notas (ex: 2.0): ");
+        double corte;
+        try {
+            corte = Double.parseDouble(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Erro: Por favor, digite um número decimal válido.");
+            return;
+        }
+
+        System.out.println("\n--- Títulos com Divergência Crítica (> " + corte + ") ---");
+        
+        // Utilizando a LinkedList customizada do projeto como Fila (Queue)
+        LinkedList<Node<ProgramaNetFlix>> fila = new LinkedList<>();
+        fila.addLast(arvore.getRaiz());
+
+        boolean encontrou = false;
+
+        // Loop do percurso em Nível (Breadth-First Search)
+        while (!fila.isEmpty()) {
+            Node<ProgramaNetFlix> atual = fila.pollFirst(); // Desenfileira
+            ProgramaNetFlix programa = atual.getValue();
+
+            double imdb = programa.getImdb_score();
+            double tmdb = programa.getTmdb_score();
+
+            // Filtramos notas 0.0 para evitar falsas divergências devido a dados faltantes no CSV
+            if (imdb > 0 && tmdb > 0) {
+                double diff = Math.abs(imdb - tmdb);
+                
+                if (diff > corte) {
+                    System.out.printf("Título: %-40s | IMDB: %.1f | TMDB: %.1f | Diferença: %.1f\n", 
+                            programa.getTitle(), imdb, tmdb, diff);
+                    encontrou = true;
+                }
+            }
+
+            // Enfileira os filhos para continuar o percurso em nível
+            if (atual.getFilhoEsquerdo() != null) {
+                fila.addLast(atual.getFilhoEsquerdo());
+            }
+            if (atual.getFilhoDireito() != null) {
+                fila.addLast(atual.getFilhoDireito());
+            }
+        }
+
+        if (!encontrou) {
+            System.out.println("Nenhum título encontrado com uma divergência superior a " + corte + ".");
+        }
+        System.out.println("---------------------------------------------------------");
     }
 
      //op 4: busca por ID, contabilizando tempo e comparações
