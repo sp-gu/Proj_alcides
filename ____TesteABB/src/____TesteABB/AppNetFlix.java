@@ -52,19 +52,23 @@ public class AppNetFlix {
                 try {
                     int opAnalise = Integer.parseInt(scanner.nextLine());
                     switch (opAnalise) {
+                        case 1:
+                            rankQualiTipo(); 
+                            break;
+                        case 2:
+                            // maturidadeDuracao();
+                            System.out.println("Funcionalidade em desenvolvimento.");
+                            break;
+                        case 3:
+                            // tendenciasPorDecada();
+                            break;
+                        case 4:
+                            // eficienciaInternacional();
+                            break;
                         case 5:
                             divergenciaCritica();
                             break;
-                        case 4:
-                            break;
-                        case 3:
-                            break;
-                        case 2:
-                            break;
-                        case 1:
-                            rankQualiTipo();
-                            break;
-                        default:
+                            default:
                             System.out.println("Opcao invalida!.");
                             break;
                     }
