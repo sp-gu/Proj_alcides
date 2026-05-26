@@ -3,6 +3,7 @@ package ____TesteABB;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class AppNetFlix {
@@ -61,11 +62,12 @@ public class AppNetFlix {
                         case 2:
                             break;
                         case 1:
+                            rankQualiTipo();
                             break;
                         default:
-                    System.out.println("Opcao invalida!.");
-                    break;
-            }
+                            System.out.println("Opcao invalida!.");
+                            break;
+                    }
                 } catch (NumberFormatException e) {
                     System.out.println("Opção inválida.");
                 }
@@ -94,19 +96,20 @@ public class AppNetFlix {
     }
 
     private static boolean validarCampos(String[] campos) {
-    // Se a linha for vazia ou tiver menos colunas que o mínimo necessário (ID e Título), descarta.
-    if (campos == null || campos.length < 2) {
-        return false; 
-    }
-
-    // apenas ID (0) e Título (1) como obrigatórios
-    int[] indicesObrigatorios = {0, 1}; 
-
-    for (int i : indicesObrigatorios) {
-        // Verifica se o índice existe no array e se não está vazio
-        if (i >= campos.length || campos[i] == null || campos[i].trim().isEmpty()) {
+        // Se a linha for vazia ou tiver menos colunas que o mínimo necessário (ID e
+        // Título), descarta.
+        if (campos == null || campos.length < 2) {
             return false;
         }
+
+        // apenas ID (0) e Título (1) como obrigatórios
+        int[] indicesObrigatorios = { 0, 1 };
+
+        for (int i : indicesObrigatorios) {
+            // Verifica se o índice existe no array e se não está vazio
+            if (i >= campos.length || campos[i] == null || campos[i].trim().isEmpty()) {
+                return false;
+            }
         }
         return true; // Se tem ID e Título, o resto nós tratamos como opcional
     }
@@ -120,7 +123,8 @@ public class AppNetFlix {
             int inseridos = 0, descartados = 0;
 
             while ((linha = br.readLine()) != null) {
-                if (linha.trim().isEmpty()) continue; // Pula linhas totalmente vazias
+                if (linha.trim().isEmpty())
+                    continue; // Pula linhas totalmente vazias
 
                 String[] campos = linha.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
@@ -128,14 +132,13 @@ public class AppNetFlix {
                     // usa função auxiliar getSafe para evitar o erro de Index Out of Bounds
                     // caso a linha termine antes da coluna 14
                     ProgramaNetFlix p = new ProgramaNetFlix(
-                        getSafe(campos, 0), getSafe(campos, 1), getSafe(campos, 2), getSafe(campos, 3),
-                        parseIntegerSafe(getSafe(campos, 4)), getSafe(campos, 5), 
-                        parseIntegerSafe(getSafe(campos, 6)), getSafe(campos, 7),
-                        getSafe(campos, 8), parseDoubleSafe(getSafe(campos, 9)),
-                        getSafe(campos, 10), parseDoubleSafe(getSafe(campos, 11)),
-                        parseDoubleSafe(getSafe(campos, 12)), parseDoubleSafe(getSafe(campos, 13)),
-                        parseDoubleSafe(getSafe(campos, 14))
-                    );
+                            getSafe(campos, 0), getSafe(campos, 1), getSafe(campos, 2), getSafe(campos, 3),
+                            parseIntegerSafe(getSafe(campos, 4)), getSafe(campos, 5),
+                            parseIntegerSafe(getSafe(campos, 6)), getSafe(campos, 7),
+                            getSafe(campos, 8), parseDoubleSafe(getSafe(campos, 9)),
+                            getSafe(campos, 10), parseDoubleSafe(getSafe(campos, 11)),
+                            parseDoubleSafe(getSafe(campos, 12)), parseDoubleSafe(getSafe(campos, 13)),
+                            parseDoubleSafe(getSafe(campos, 14)));
                     arvore.inserir(p);
                     inseridos++;
                 } else {
@@ -150,20 +153,27 @@ public class AppNetFlix {
 
     // função Auxiliar para ler colunas com segurança
     private static String getSafe(String[] campos, int indice) {
-        if (indice >= campos.length) return ""; // Retorna vazio se a coluna não existir na linha
+        if (indice >= campos.length)
+            return ""; // Retorna vazio se a coluna não existir na linha
         return campos[indice];
     }
 
-    // converte para Double com segurança. Se o campo estiver vazio ou for texto inválido, retorna 0.0.
+    // converte para Double com segurança. Se o campo estiver vazio ou for texto
+    // inválido, retorna 0.0.
     private static double parseDoubleSafe(String s) {
-        try { return s.isEmpty() ? 0.0 : Double.parseDouble(s); }
-        catch (Exception e) { return 0.0; }
+        try {
+            return s.isEmpty() ? 0.0 : Double.parseDouble(s);
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
 
     private static int parseIntegerSafe(String s) {
         try {
-            if (s == null || s.trim().isEmpty()) return 0;
-            // Usamos Double.parseDouble antes do cast para int caso o CSV venha como "2020.0"
+            if (s == null || s.trim().isEmpty())
+                return 0;
+            // Usamos Double.parseDouble antes do cast para int caso o CSV venha como
+            // "2020.0"
             return (int) Double.parseDouble(s.trim());
         } catch (NumberFormatException e) {
             return 0;
@@ -187,7 +197,7 @@ public class AppNetFlix {
         }
 
         System.out.println("\n--- Títulos com Divergência Crítica (> " + corte + ") ---");
-        
+
         // Utilizando a LinkedList customizada do projeto como Fila (Queue)
         LinkedList<Node<ProgramaNetFlix>> fila = new LinkedList<>();
         fila.addLast(arvore.getRaiz());
@@ -202,12 +212,13 @@ public class AppNetFlix {
             double imdb = programa.getImdb_score();
             double tmdb = programa.getTmdb_score();
 
-            // Filtramos notas 0.0 para evitar falsas divergências devido a dados faltantes no CSV
+            // Filtramos notas 0.0 para evitar falsas divergências devido a dados faltantes
+            // no CSV
             if (imdb > 0 && tmdb > 0) {
                 double diff = Math.abs(imdb - tmdb);
-                
+
                 if (diff > corte) {
-                    System.out.printf("Título: %-40s | IMDB: %.1f | TMDB: %.1f | Diferença: %.1f\n", 
+                    System.out.printf("Título: %-40s | IMDB: %.1f | TMDB: %.1f | Diferença: %.1f\n",
                             programa.getTitle(), imdb, tmdb, diff);
                     encontrou = true;
                 }
@@ -228,13 +239,16 @@ public class AppNetFlix {
         System.out.println("---------------------------------------------------------");
     }
 
-     //op 4: busca por ID, contabilizando tempo e comparações
+    // op 4: busca por ID, contabilizando tempo e comparações
     private static void buscarPrograma() {
         System.out.print("Digite o ID para busca (ex: tm84618): ");
         String idBusca = scanner.nextLine();
-        
+
         // objeto temporário só com o ID p/ busca (usando compareTo)
-        // é necessário criar um objeto (ao invés de buscar por ID) devido ao fato da árvore ser genérica. o método 'search' da classe ABB exige um parâmetro de busca igual ao armazenado, e o armazenamento é feito do tipo <T> na ABB (junto ao comparable que tb usa tipo <T>)
+        // é necessário criar um objeto (ao invés de buscar por ID) devido ao fato da
+        // árvore ser genérica. o método 'search' da classe ABB exige um parâmetro de
+        // busca igual ao armazenado, e o armazenamento é feito do tipo <T> na ABB
+        // (junto ao comparable que tb usa tipo <T>)
         ProgramaNetFlix template = new ProgramaNetFlix();
         template.setId(idBusca);
 
@@ -256,14 +270,16 @@ public class AppNetFlix {
 
     // método auxiliar para altura (op 6)
     private static int calcularAltura(Node<ProgramaNetFlix> atual) {
-        if (atual == null) return -1;
+        if (atual == null)
+            return -1;
         return 1 + Math.max(calcularAltura(atual.getFilhoEsquerdo()), calcularAltura(atual.getFilhoDireito()));
     }
 
-    // PENDENTE: métodos para Inserção manual e Remoção c/  lógica similar chamando arvore.inserir e arvore.eliminar
-    private static void inserirNovoPrograma() { 
+    // PENDENTE: métodos para Inserção manual e Remoção c/ lógica similar chamando
+    // arvore.inserir e arvore.eliminar
+    private static void inserirNovoPrograma() {
         System.out.println("\n--- INSERIR NOVO PROGRAMA ---");
-        
+
         System.out.print("Tipo (Digite 'ts' para SHOW ou 'tm' para MOVIE): ");
         String prefixo = scanner.nextLine().toLowerCase();
         if (!prefixo.equals("ts") && !prefixo.equals("tm")) {
@@ -273,7 +289,7 @@ public class AppNetFlix {
 
         System.out.print("Digite o número único para o ID: ");
         String numeroUnico = scanner.nextLine();
-        String id = prefixo + numeroUnico; // Conforme regra do ID 
+        String id = prefixo + numeroUnico; // Conforme regra do ID
 
         // Coleta de dados básicos para exemplificar os 15 atributos [cite: 65]
         System.out.print("Título: ");
@@ -305,22 +321,22 @@ public class AppNetFlix {
         System.out.print("TMDB Score: ");
         double tmdbScore = parseDoubleSafe(scanner.nextLine());
 
-        // Criando o array para validação de preenchimento 
-        String[] campos = {id, titulo, tipo, desc, String.valueOf(ano), age, String.valueOf(runtime), 
-                           generos, paises, String.valueOf(seasons), imdbId, String.valueOf(imdbScore), 
-                           String.valueOf(imdbVotes), String.valueOf(tmdbPop), String.valueOf(tmdbScore)};
+        // Criando o array para validação de preenchimento
+        String[] campos = { id, titulo, tipo, desc, String.valueOf(ano), age, String.valueOf(runtime),
+                generos, paises, String.valueOf(seasons), imdbId, String.valueOf(imdbScore),
+                String.valueOf(imdbVotes), String.valueOf(tmdbPop), String.valueOf(tmdbScore) };
 
         if (validarCampos(campos)) {
-            ProgramaNetFlix novo = new ProgramaNetFlix(id, titulo, tipo, desc, ano, age, runtime, 
-                                     generos, paises, seasons, imdbId, imdbScore, imdbVotes, tmdbPop, tmdbScore);
+            ProgramaNetFlix novo = new ProgramaNetFlix(id, titulo, tipo, desc, ano, age, runtime,
+                    generos, paises, seasons, imdbId, imdbScore, imdbVotes, tmdbPop, tmdbScore);
             arvore.inserir(novo);
             System.out.println("Programa inserido com sucesso!");
         } else {
             System.out.println("Erro: Todos os 15 atributos devem estar preenchidos.");
         }
-     }
+    }
 
-    private static void removerPrograma() { 
+    private static void removerPrograma() {
         System.out.print("Digite o ID do programa a ser removido: ");
         String idRemover = scanner.nextLine();
 
@@ -333,44 +349,82 @@ public class AppNetFlix {
         } else {
             System.out.println("Erro: Programa não encontrado.");
         }
-     }
+    }
 
-     private static void salvarArquivo() {
+    private static void salvarArquivo() {
         System.out.print("Digite o nome do arquivo para salvar (ex: dataset_atualizado.csv): ");
         String nomeArquivo = scanner.nextLine();
 
         try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(nomeArquivo))) {
             // Cabeçalho do CSV [cite: 49]
-            pw.println("id,title,type,description,release_year,age_certification,runtime,genres,production_countries,seasons,imdb_id,imdb_score,imdb_votes,tmdb_popularity,tmdb_score");
-            
-            // Percurso em ordem para salvar os dados de forma organizada 
+            pw.println(
+                    "id,title,type,description,release_year,age_certification,runtime,genres,production_countries,seasons,imdb_id,imdb_score,imdb_votes,tmdb_popularity,tmdb_score");
+
+            // Percurso em ordem para salvar os dados de forma organizada
             escreverNoArquivo(arvore.getRaiz(), pw);
-            
+
             System.out.println("Dados salvos com sucesso no arquivo: " + nomeArquivo);
         } catch (IOException e) {
             System.out.println("Erro ao salvar o arquivo: " + e.getMessage());
         }
-     }
+    }
 
-     // método auxiliar recursivo do "salvarArquivo", para percorrer a árvore e escrever no PrintWriter
+    // método auxiliar recursivo do "salvarArquivo", para percorrer a árvore e
+    // escrever no PrintWriter
     private static void escreverNoArquivo(Node<ProgramaNetFlix> no, java.io.PrintWriter pw) {
         if (no != null) {
             escreverNoArquivo(no.getFilhoEsquerdo(), pw);
-            
+
             ProgramaNetFlix p = no.getValue();
-            // Formatação CSV simples (considerando que dados com vírgula devem estar entre aspas)
+            // Formatação CSV simples (considerando que dados com vírgula devem estar entre
+            // aspas)
             String linha = String.format("%s,\"%s\",%s,\"%s\",%d,%s,%d,\"%s\",\"%s\",%.1f,%s,%.1f,%.1f,%.1f,%.1f",
-                p.getId(), p.getTitle(), p.getType(), p.getDescription(), p.getRelease_year(),
-                p.getAge_certification(), p.getRuntime(), p.getGenres(), p.getProduction_countries(),
-                p.getSeasons(), p.getImdb_id(), p.getImdb_score(), p.getImdb_votes(),
-                p.getTmdb_popularity(), p.getTmdb_score());
-            
+                    p.getId(), p.getTitle(), p.getType(), p.getDescription(), p.getRelease_year(),
+                    p.getAge_certification(), p.getRuntime(), p.getGenres(), p.getProduction_countries(),
+                    p.getSeasons(), p.getImdb_id(), p.getImdb_score(), p.getImdb_votes(),
+                    p.getTmdb_popularity(), p.getTmdb_score());
+
             pw.println(linha);
-            
+
             escreverNoArquivo(no.getFilhoDireito(), pw);
         }
     }
 
-    // PENDENTE: métodos de analise de dados da op 2 do PDF
-    // criar outro while dentro do existente com as 5 opções de método de análise  
+    private static void rankQualiTipo(){
+        ArrayList<ProgramaNetFlix> topProgramas = new ArrayList<>();
+        System.out.print("Digite o tipo de programa: ");
+        String tipo = scanner.nextLine().toUpperCase();
+
+        if(!tipo.equals("MOVIE") && !tipo.equals("SHOW")){
+            System.out.println("Tipo inválido inserido!: "+ tipo);
+            return;
+        }
+
+        filtrarTop(arvore.getRaiz(), topProgramas, tipo);
+
+        System.out.println("---------------Top Programas---------------");
+        for(ProgramaNetFlix p : topProgramas){
+            System.out.println(
+                p.getTitle() + "| IMDb: " + p.getImdb_score()
+            );
+        }
+    }
+
+    private static void filtrarTop(
+        Node<ProgramaNetFlix> no,
+        ArrayList<ProgramaNetFlix> ar,
+        String tipo
+    ){
+        if(no != null){
+            filtrarTop(no.getFilhoEsquerdo(), ar, tipo);
+
+            ProgramaNetFlix programa = no.getValue();
+
+            if (programa.getImdb_score() > 8.0 && no.getValue().getType().equals(tipo)) {
+                ar.add(programa);
+            }
+
+            filtrarTop(no.getFilhoDireito(), ar, tipo);
+        }
+    }
 }
